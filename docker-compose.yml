@@ -1,0 +1,48 @@
+version: '3.4'
+
+# Common config
+x-xxx-common-services-config: &common-services-config
+  restart: always
+
+# Kafka environment variables
+x-kafka-env: &kafka-env
+  KAFKA_BROKER_ID: 1
+  KAFKA_ADVERTISED_HOST_NAME: kafka
+  KAFKA_ADVERTISED_PORT: 9092
+  BROKER_ID_COMMAND: "hostname | cut -d'-' -f2"
+  KAFKA_ZOOKEEPER_CONNECT: "zoo:2181"
+  KAFKA_CREATE_TOPICS: "logging:20:1,pushnotifications:10:1,invoicing:10:1,mailing:10:1,userupdates:10:1,orderupdates:10:1"
+  KAFKA_LISTENERS: "PLAINTEXT://kafka:9092"
+
+services:
+  pingack:
+    <<: *common-services-config
+    build:
+      context: .
+      dockerfile: pingack/Dockerfile
+    ports:
+      - "8080"
+    environment:
+      PING_TIME: 30 # in seconds
+      HOSTS_LIST: order,paymentsystem,invoicing,product,shipping
+      BOOTSTRAP_ADDRESS: kafka:9092
+    depends_on:
+      - kafka
+  testing:
+    <<: *common-services-config
+    build:
+      context: .
+      dockerfile: testing/Dockerfile
+    ports:
+      - "8080"
+  zoo:
+    <<: *common-services-config
+    image: library/zookeeper:3.4.13
+    environment:
+      ZOO_MY_ID: 1
+  kafka:
+    <<: *common-services-config
+    environment: *kafka-env
+    image: wurstmeister/kafka:2.11-2.0.0
+    depends_on:
+      - zoo
