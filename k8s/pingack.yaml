@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pingack
+spec:
+  selector:
+    matchLabels:
+      app: pingack
+  template:
+    metadata:
+      labels:
+        app: pingack
+    spec:
+      containers:
+        - name: pingack
+          image: ameliasorrenti/pingack:v1
+          ports:
+          - containerPort: 8080
+          envFrom:
+          - configMapRef:
+              name: pingack-env
+          readinessProbe:
+            httpGet:
+              path: /ping-probe
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 3
+          livenessProbe:
+            httpGet:
+              path: /ping-probe
+              port: 8080
+            initialDelaySeconds: 40
+            periodSeconds: 3

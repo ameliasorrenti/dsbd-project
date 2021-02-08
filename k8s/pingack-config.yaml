@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pingack-env
+data:
+  PING_TIME: "30" # in seconds
+  HOSTS_LIST: testing
+  BOOTSTRAP_ADDRESS: kafkabroker.default.svc.cluster.local:9092
